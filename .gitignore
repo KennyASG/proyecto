@@ -8,3 +8,7 @@ voice_assistant/audio_io/__pycache__/
 voice_assistant/action/__pycache__/
 
 voice_assistant/intent/__pycache__/
+
+whatsapp_profile/
+
+whatsapp_cookies.pkl

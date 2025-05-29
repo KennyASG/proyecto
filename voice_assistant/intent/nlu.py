@@ -7,7 +7,7 @@ class IntentParser:
     def parse(self, text: str):
         text_lower = text.lower()
 
-        # Clima
+        # 1. Regla para clima
         if "clima" in text_lower:
             parts = text_lower.split()
             if "en" in parts:
@@ -17,10 +17,9 @@ class IntentParser:
                 location = "Guatemala"
             return "weather", {"location": location.capitalize()}
 
-        # Envío de correo
+        # 2. Regla para envío de correo
         if "enviar correo a" in text_lower:
-            # Ejemplo de frase:
-            # "enviar correo a juan@example.com asunto prueba cuerpo este es el mensaje"
+            # "enviar correo a <to> asunto <subject> cuerpo <body>"
             parts = text_lower.replace("enviar correo a ", "").split(" asunto ")
             to = parts[0].strip()
             subject, body = "", ""
@@ -29,11 +28,15 @@ class IntentParser:
                 subject = rest[0].strip()
                 if len(rest) > 1:
                     body = rest[1].strip()
-            return "send_email", {
-                "to": to,
-                "subject": subject,
-                "body": body
-            }
+            return "send_email", {"to": to, "subject": subject, "body": body}
 
-        # Fallback: chat con Gemini
+        # 3. Regla para WhatsApp
+        if "enviar whatsapp a" in text_lower:
+            # "enviar whatsapp a <to> mensaje <message>"
+            parts = text_lower.replace("enviar whatsapp a ", "").split(" mensaje ")
+            to = parts[0].strip()
+            message = parts[1].strip() if len(parts) > 1 else ""
+            return "send_whatsapp", {"to": to, "message": message}
+
+        # 4. Fallback: chat con Gemini
         return "gemini", {"text": text}
