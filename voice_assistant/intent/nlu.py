@@ -44,5 +44,14 @@ class IntentParser:
             return "open_app", {"app": app_name}
 
 
+        # Regla para buscar archivos
+        if "buscar archivo" in text_lower:
+            # "buscar archivo presupuesto en Documentos"
+            parts = text_lower.replace("buscar archivo ", "").split(" en ")
+            name = parts[0].strip()
+            path = parts[1].strip() if len(parts) > 1 else None
+            return "file_search", {"name": name, "path": path}
+
+
         # 4. Fallback: chat con Gemini
         return "gemini", {"text": text}
