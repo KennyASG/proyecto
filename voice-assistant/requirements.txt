@@ -1,7 +1,0 @@
-SpeechRecognition==3.8.1
-pyttsx3==2.90
-python-dotenv==1.0.0
-pyaudio==0.2.13      # para acceso al micrófono
-openai==0.27.0       # más adelante, para NLU
-requests==2.31.0     # para llamadas HTTP
-selenium==4.9.1      # para WhatsApp Web, YouTube, etc.
