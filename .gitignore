@@ -1,0 +1,6 @@
+
+.DS_Store
+
+voice-assistant/__pycache__/
+
+voice-assistant/audio_io/__pycache__/
