@@ -22,8 +22,7 @@ class WeatherAction(BaseAction):
         })
 
         # ── DEBUG ───────────────────────────────────────────────────
-        print(f"[WeatherAction] STATUS: {resp.status_code}")
-        print(f"[WeatherAction] BODY: {resp.text}")
+        
         # ───────────────────────────────────────────────────────────
 
         if resp.status_code != 200:
