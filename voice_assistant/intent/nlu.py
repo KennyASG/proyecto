@@ -1,4 +1,4 @@
-# intent/nlu.py
+# voice_assistant/intent/nlu.py
 
 class IntentParser:
     def __init__(self, action_registry):
@@ -26,7 +26,8 @@ class IntentParser:
 
         # 2. Aquí puedes añadir más reglas basadas en palabras clave...
         #    por ejemplo:
-        #    if "correo" in text_lower: return "send_email", {...}
+        #    if "correo" in text_lower:
+        #        return "send_email", { ... }
 
-        # 3. Fallback: todo lo demás va a ChatGPT
-        return "chat", {"text": text}
+        # 3. Fallback: todo lo demás va a Gemini
+        return "gemini", {"text": text}
