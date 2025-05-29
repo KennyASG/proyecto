@@ -38,5 +38,11 @@ class IntentParser:
             message = parts[1].strip() if len(parts) > 1 else ""
             return "send_whatsapp", {"to": to, "message": message}
 
+        if text_lower.startswith("abrir "):
+            # "abrir vscode", "abrir chrome", etc.
+            app_name = text_lower.replace("abrir ", "").strip()
+            return "open_app", {"app": app_name}
+
+
         # 4. Fallback: chat con Gemini
         return "gemini", {"text": text}
