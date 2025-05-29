@@ -1,6 +1,6 @@
 # audio_io/recognizer.py
 import speech_recognition as sr
-from config import HOTWORD, LISTEN_TIMEOUT, PHRASE_TIME_LIMIT
+from ..config import HOTWORD, LISTEN_TIMEOUT, PHRASE_TIME_LIMIT
 
 class VoiceRecognizer:
     def __init__(self):
