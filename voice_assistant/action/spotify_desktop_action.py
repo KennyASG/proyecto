@@ -4,6 +4,7 @@ import platform
 import subprocess
 import os
 from .base_action import BaseAction
+import time
 
 try:
     import keyboard
@@ -46,12 +47,18 @@ class SpotifyDesktopAction(BaseAction):
                 "siguiente": "next track",
                 "prev": "previous track",
                 "anterior": "previous track",
+                "regresar": "previous track",
                 "skip": "next track",
                 "stop": "play/pause media"
             }
             key = mapping.get(action)
             if key:
-                keyboard.send(key)
+                if action == "anterior":
+                    keyboard.send(key)
+                    time.sleep(0.2)
+                    keyboard.send(key)
+                else:
+                    keyboard.send(key)
                 return f"Ejecutada acción «{action}» en Spotify Desktop."
         elif system == "Darwin":
             # AppleScript para macOS
@@ -64,11 +71,17 @@ class SpotifyDesktopAction(BaseAction):
                 "siguiente": 'tell application "Spotify" to next track',
                 "prev": 'tell application "Spotify" to previous track',
                 "anterior": 'tell application "Spotify" to previous track',
+                "regresar": 'tell application "Spotify" to previous track',
                 "stop": 'tell application "Spotify" to pause'
             }
             cmd = script_map.get(action)
             if cmd:
-                subprocess.run(["osascript", "-e", cmd])
+                if action == "anterior":
+                    subprocess.run(["osascript", "-e", cmd])
+                    time.sleep(0.2)
+                    subprocess.run(["osascript", "-e", cmd])
+                else:
+                    subprocess.run(["osascript", "-e", cmd])
                 return f"Ejecutada acción «{action}» en Spotify Desktop."
         else:
             # Linux o demás
