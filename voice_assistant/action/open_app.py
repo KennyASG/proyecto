@@ -14,21 +14,7 @@ class OpenAppAction(BaseAction):
         if not app:
             return "Debes indicar el nombre de la aplicación a abrir."
 
-        # Mapeo de nombres de voz a comandos/executables
-        mapping = {
-            "vscode": "code",               # VS Code
-            "visual studio code": "code",
-            "chrome": "chrome",             # Google Chrome
-            "google chrome": "chrome",
-            "notepad": "notepad.exe",       # Bloc de notas (Windows)
-            "word": "winword",              # Word (suponiendo Office en PATH)
-            "excel": "excel",
-            "spotify": "spotify",
-            "calculator": "calc"            # Calculadora de Windows
-            # agrega más mapeos según tus apps
-        }
-
-        cmd = mapping.get(app)
+        cmd = app
         if not cmd:
             return f"No conozco cómo abrir «{app}». Verifica el nombre."
 
