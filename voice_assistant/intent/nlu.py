@@ -1,8 +1,17 @@
-# voice_assistant/intent/nlu.py
+import re
+
 
 class IntentParser:
     def __init__(self, action_registry):
         self.registry = action_registry
+        # Diccionario de contactos conocidos
+        self.contacts = {
+            "mayen": "mayenrosil@gmail.com",
+            "kenny": "saenzk031@gmail.com",
+            "fernando": "jofermelenbo@gmail.com",
+            "erick" : ""
+            # Agregar más contactos aquí
+        }
 
     def parse(self, text: str):
         text_lower = text.lower()
@@ -17,41 +26,131 @@ class IntentParser:
                 location = "Guatemala"
             return "weather", {"location": location.capitalize()}
 
-        # 2. Regla para envío de correo
+        # 2. Regla mejorada para envío de correo
         if "enviar correo a" in text_lower:
-            # "enviar correo a <to> asunto <subject> cuerpo <body>"
-            parts = text_lower.replace("enviar correo a ", "").split(" asunto ")
-            to = parts[0].strip()
-            subject, body = "", ""
-            if len(parts) > 1:
-                rest = parts[1].split(" cuerpo ")
-                subject = rest[0].strip()
-                if len(rest) > 1:
-                    body = rest[1].strip()
-            return "send_email", {"to": to, "subject": subject, "body": body}
+            email = self._extract_email_from_text(text_lower)
+            subject, body = self._extract_email_content(text_lower)
+            return "send_email", {"to": email, "subject": subject, "body": body}
 
         # 3. Regla para WhatsApp
         if "enviar whatsapp a" in text_lower:
-            # "enviar whatsapp a <to> mensaje <message>"
             parts = text_lower.replace("enviar whatsapp a ", "").split(" mensaje ")
             to = parts[0].strip()
             message = parts[1].strip() if len(parts) > 1 else ""
             return "send_whatsapp", {"to": to, "message": message}
 
         if text_lower.startswith("abrir "):
-            # "abrir vscode", "abrir chrome", etc.
             app_name = text_lower.replace("abrir ", "").strip()
             return "open_app", {"app": app_name}
 
-
         # Regla para buscar archivos
         if "buscar archivo" in text_lower:
-            # "buscar archivo presupuesto en Documentos"
             parts = text_lower.replace("buscar archivo ", "").split(" en ")
             name = parts[0].strip()
             path = parts[1].strip() if len(parts) > 1 else None
             return "file_search", {"name": name, "path": path}
 
-
         # 4. Fallback: chat con Gemini
         return "gemini", {"text": text}
+
+    def _extract_email_from_text(self, text: str) -> str:
+        """Extrae y reconstruye el email del texto transcrito"""
+
+        # Método 1: Buscar por contacto conocido
+        for name, email in self.contacts.items():
+            if name in text:
+                print(f"[NLU] Contacto encontrado: {name} -> {email}")
+                return email
+
+        # Método 2: Intentar reconstruir el email
+        # Buscar patrones como "algo @ algo punto com"
+        email_pattern = self._reconstruct_email_from_speech(text)
+        if email_pattern:
+            return email_pattern
+
+        # Método 3: Extraer después de "enviar correo a"
+        parts = text.replace("enviar correo a ", "").split(" asunto ")
+        potential_email = parts[0].strip()
+
+        # Limpiar y reconstruir
+        cleaned_email = self._clean_and_rebuild_email(potential_email)
+        return cleaned_email
+
+    def _reconstruct_email_from_speech(self, text: str) -> str:
+        """Intenta reconstruir emails de texto hablado"""
+
+        # Patrones comunes de speech-to-text para emails
+        replacements = {
+            " arroba ": "@",
+            " @ ": "@",
+            " at ": "@",
+            " punto ": ".",
+            " dot ": ".",
+            " com": ".com",
+            " gmail": "gmail",
+            " hotmail": "hotmail",
+            " yahoo": "yahoo",
+            " outlook": "outlook"
+        }
+
+        result = text.lower()
+        for pattern, replacement in replacements.items():
+            result = result.replace(pattern, replacement)
+
+        # Remover espacios alrededor de @ y puntos
+        result = re.sub(r'\s*@\s*', '@', result)
+        result = re.sub(r'\s*\.\s*', '.', result)
+
+        # Buscar patrón de email válido
+        email_match = re.search(r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b', result)
+        if email_match:
+            return email_match.group()
+
+        return None
+
+    def _clean_and_rebuild_email(self, email_text: str) -> str:
+        """Limpia y reconstruye un email mal transcrito"""
+
+        # Remover espacios extra
+        email_text = re.sub(r'\s+', '', email_text.lower())
+
+        # Patrones comunes de corrección
+        corrections = {
+            'gmail': '@gmail.com',
+            'hotmail': '@hotmail.com',
+            'yahoo': '@yahoo.com',
+            'outlook': '@outlook.com'
+        }
+
+        # Si no tiene @ pero tiene un servicio conocido
+        for service, domain in corrections.items():
+            if service in email_text and '@' not in email_text:
+                username = email_text.replace(service, '')
+                return f"{username}{domain}"
+
+        # Si ya parece un email, devolverlo
+        if '@' in email_text and '.' in email_text:
+            return email_text
+
+        # Fallback: asumir gmail si no se especifica
+        if '@' not in email_text:
+            return f"{email_text}@gmail.com"
+
+        return email_text
+
+    def _extract_email_content(self, text: str):
+        """Extrae asunto y cuerpo del comando de email"""
+        subject, body = "", ""
+
+        if " asunto " in text:
+            parts = text.split(" asunto ")
+            if len(parts) > 1:
+                rest = parts[1]
+                if " cuerpo " in rest:
+                    subject_body = rest.split(" cuerpo ")
+                    subject = subject_body[0].strip()
+                    body = subject_body[1].strip() if len(subject_body) > 1 else ""
+                else:
+                    subject = rest.strip()
+
+        return subject, body
