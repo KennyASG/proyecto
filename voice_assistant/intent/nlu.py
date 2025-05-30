@@ -27,6 +27,7 @@ class IntentParser:
             return "weather", {"location": location.capitalize()}
 
         # 2. Regla mejorada para envío de correo
+        # enviar correo a <email> asunto <asunto> cuerpo <cuerpo>
         if "enviar correo a" in text_lower:
             email = self._extract_email_from_text(text_lower)
             subject, body = self._extract_email_content(text_lower)
@@ -61,6 +62,24 @@ class IntentParser:
                     query = text_lower[len(prefix):].strip()
                     break
             return "youtube", {"query": query}
+
+        # Regla para Spotify
+        # voice_assistant/intent/nlu.py  (inserta antes del fallback)
+
+    # Regla para Spotify
+    # Regla para Spotify
+# voice_assistant/intent/nlu.py
+
+                # Spotify Desktop
+        if text_lower.startswith("spotify "):
+            # Ejemplos:
+            #  spotify reproducir
+            #  spotify play
+            #  spotify pausa
+            parts = text_lower.split()
+            action = parts[1] if len(parts) > 1 else ""
+            return "spotify_desktop", {"action": action}
+
 
         # 4. Fallback: chat con Gemini
         return "gemini", {"text": text}

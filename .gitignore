@@ -11,4 +11,6 @@ voice_assistant/intent/__pycache__/
 
 whatsapp_profile/
 
+spotify_profile/
+
 whatsapp_cookies.pkl

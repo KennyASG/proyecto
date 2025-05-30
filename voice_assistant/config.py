@@ -26,3 +26,8 @@ SMTP_SERVER   = os.getenv("SMTP_SERVER")
 SMTP_PORT     = int(os.getenv("SMTP_PORT", 587))
 SMTP_USER     = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
+# 5) Configuración de Spotify
+SPOTIFY_CLIENT_ID     = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+SPOTIFY_REDIRECT_URI  = os.getenv("SPOTIFY_REDIRECT_URI")

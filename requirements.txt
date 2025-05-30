@@ -222,3 +222,5 @@ openai==0.27.0       # más adelante, para NLU
 requests==2.31.0     # para llamadas HTTP
 selenium==4.9.1      # para WhatsApp Web, YouTube, etc.
 pytube==15.0.0  # versión estable actual en PyPI :contentReference[oaicite:0]{index=0}
+spotipy==2.25.1    # última versión publicada el 27 Feb 2025 :contentReference[oaicite:0]{index=0}
+keyboard==0.13.5    # capturar y enviar teclas multimedia en Windows y Linux :contentReference[oaicite:0]{index=0}
