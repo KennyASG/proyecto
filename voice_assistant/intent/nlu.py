@@ -51,7 +51,18 @@ class IntentParser:
             name = parts[0].strip()
             path = parts[1].strip() if len(parts) > 1 else None
             return "file_search", {"name": name, "path": path}
-
+            
+        # Regla para YouTube
+        if text_lower.startswith(("buscar video", "reproducir video", "youtube")):
+            # e.g. "buscar video gatos divertidos"
+            #      "reproducir video música jazz"
+            #      "youtube tutorial python"
+            # quitamos la palabra clave y usamos el resto como query
+            for prefix in ("buscar video", "reproducir video", "youtube"):
+                if text_lower.startswith(prefix):
+                    query = text_lower[len(prefix):].strip()
+                    break
+            return "youtube", {"query": query}
 
         # 4. Fallback: chat con Gemini
         return "gemini", {"text": text}

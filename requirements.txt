@@ -221,3 +221,4 @@ pyaudio==0.2.13      # para acceso al micrófono
 openai==0.27.0       # más adelante, para NLU
 requests==2.31.0     # para llamadas HTTP
 selenium==4.9.1      # para WhatsApp Web, YouTube, etc.
+pytube==15.0.0  # versión estable actual en PyPI :contentReference[oaicite:0]{index=0}
