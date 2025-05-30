@@ -1,3 +1,5 @@
+# voice_assistant/intent/nlu.py
+
 import re
 
 
@@ -7,9 +9,8 @@ class IntentParser:
         # Diccionario de contactos conocidos
         self.contacts = {
             "mayen": "mayenrosil@gmail.com",
-            "kenny": "saenzk031@gmail.com",
-            "fernando": "jofermelenbo@gmail.com",
-            "erick" : ""
+            "rosa": "rosa.martinez@empresa.com",
+            "juan": "juan.perez@hotmail.com",
             # Agregar más contactos aquí
         }
 
@@ -50,7 +51,7 @@ class IntentParser:
             name = parts[0].strip()
             path = parts[1].strip() if len(parts) > 1 else None
             return "file_search", {"name": name, "path": path}
-            
+
         # Regla para YouTube
         if text_lower.startswith(("buscar video", "reproducir video", "youtube")):
             # e.g. "buscar video gatos divertidos"
@@ -63,6 +64,13 @@ class IntentParser:
                     break
             return "youtube", {"query": query}
 
+        # Regla para Netflix
+        if "netflix" in text_lower or any(keyword in text_lower for keyword in
+                                          ["buscar en netflix", "reproducir en netflix", "pausar netflix",
+                                           "reanudar netflix"]):
+            return self._parse_netflix_command(text_lower)
+
+        # Fallback: chat con Gemini
         # Regla para Spotify
         # voice_assistant/intent/nlu.py  (inserta antes del fallback)
 
@@ -84,7 +92,97 @@ class IntentParser:
         # 4. Fallback: chat con Gemini
         return "gemini", {"text": text}
 
-    def _extract_email_from_text(self, text: str) -> str:
+    def _parse_netflix_command(self, text: str) -> tuple:
+        """Parsea comandos específicos de Netflix"""
+
+        # Patrones de comandos de Netflix
+        if "buscar" in text and ("netflix" in text or "en netflix" in text):
+            # "buscar stranger things en netflix"
+            query = self._extract_netflix_query(text, "buscar")
+            return "netflix_control", {"action": "buscar", "query": query}
+
+        elif "reproducir" in text and ("netflix" in text or "en netflix" in text):
+            # "reproducir la casa de papel en netflix"
+            query = self._extract_netflix_query(text, "reproducir")
+            return "netflix_control", {"action": "reproducir", "query": query}
+
+        elif "pausar" in text and "netflix" in text:
+            # "pausar netflix"
+            return "netflix_control", {"action": "pausar", "query": ""}
+
+        elif "reanudar" in text and "netflix" in text:
+            # "reanudar netflix"
+            return "netflix_control", {"action": "reanudar", "query": ""}
+
+        elif "cerrar" in text and "netflix" in text:
+            # "cerrar netflix"
+            return "netflix_control", {"action": "cerrar", "query": ""}
+
+        elif "abrir" in text and "netflix" in text:
+            # "abrir netflix"
+            return "netflix_control", {"action": "buscar", "query": ""}
+
+        # Comando genérico de Netflix
+        return "netflix_control", {"action": "buscar", "query": ""}
+
+    def _extract_netflix_query(self, text: str, action: str) -> str:
+        """Extrae la consulta de búsqueda para Netflix"""
+
+        # Remover palabras clave para obtener la consulta
+        text = text.replace(action, "").replace("netflix", "").replace("en netflix", "")
+
+        # Limpiar palabras comunes
+        stop_words = ["en", "la", "el", "de", "del", "que", "para", "por", "con"]
+        words = text.split()
+        query_words = [word for word in words if word not in stop_words and word.strip()]
+
+        return " ".join(query_words).strip()
+
+    def _parse_netflix_command(self, text: str) -> tuple:
+        """Parsea comandos específicos de Netflix"""
+
+        # Patrones de comandos de Netflix
+        if "buscar" in text and ("netflix" in text or "en netflix" in text):
+            # "buscar stranger things en netflix"
+            query = self._extract_netflix_query(text, "buscar")
+            return "netflix_control", {"action": "buscar", "query": query}
+
+        elif "reproducir" in text and ("netflix" in text or "en netflix" in text):
+            # "reproducir la casa de papel en netflix"
+            query = self._extract_netflix_query(text, "reproducir")
+            return "netflix_control", {"action": "reproducir", "query": query}
+
+        elif "pausar" in text and "netflix" in text:
+            # "pausar netflix"
+            return "netflix_control", {"action": "pausar", "query": ""}
+
+        elif "reanudar" in text and "netflix" in text:
+            # "reanudar netflix"
+            return "netflix_control", {"action": "reanudar", "query": ""}
+
+        elif "cerrar" in text and "netflix" in text:
+            # "cerrar netflix"
+            return "netflix_control", {"action": "cerrar", "query": ""}
+
+        elif "abrir" in text and "netflix" in text:
+            # "abrir netflix"
+            return "netflix_control", {"action": "buscar", "query": ""}
+
+        # Comando genérico de Netflix
+        return "netflix_control", {"action": "buscar", "query": ""}
+
+    def _extract_netflix_query(self, text: str, action: str) -> str:
+        """Extrae la consulta de búsqueda para Netflix"""
+
+        # Remover palabras clave para obtener la consulta
+        text = text.replace(action, "").replace("netflix", "").replace("en netflix", "")
+
+        # Limpiar palabras comunes
+        stop_words = ["en", "la", "el", "de", "del", "que", "para", "por", "con"]
+        words = text.split()
+        query_words = [word for word in words if word not in stop_words and word.strip()]
+
+        return " ".join(query_words).strip()
         """Extrae y reconstruye el email del texto transcrito"""
 
         # Método 1: Buscar por contacto conocido
@@ -94,7 +192,6 @@ class IntentParser:
                 return email
 
         # Método 2: Intentar reconstruir el email
-        # Buscar patrones como "algo @ algo punto com"
         email_pattern = self._reconstruct_email_from_speech(text)
         if email_pattern:
             return email_pattern
@@ -110,7 +207,6 @@ class IntentParser:
     def _reconstruct_email_from_speech(self, text: str) -> str:
         """Intenta reconstruir emails de texto hablado"""
 
-        # Patrones comunes de speech-to-text para emails
         replacements = {
             " arroba ": "@",
             " @ ": "@",
@@ -128,11 +224,9 @@ class IntentParser:
         for pattern, replacement in replacements.items():
             result = result.replace(pattern, replacement)
 
-        # Remover espacios alrededor de @ y puntos
         result = re.sub(r'\s*@\s*', '@', result)
         result = re.sub(r'\s*\.\s*', '.', result)
 
-        # Buscar patrón de email válido
         email_match = re.search(r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b', result)
         if email_match:
             return email_match.group()
@@ -142,10 +236,8 @@ class IntentParser:
     def _clean_and_rebuild_email(self, email_text: str) -> str:
         """Limpia y reconstruye un email mal transcrito"""
 
-        # Remover espacios extra
         email_text = re.sub(r'\s+', '', email_text.lower())
 
-        # Patrones comunes de corrección
         corrections = {
             'gmail': '@gmail.com',
             'hotmail': '@hotmail.com',
@@ -153,17 +245,14 @@ class IntentParser:
             'outlook': '@outlook.com'
         }
 
-        # Si no tiene @ pero tiene un servicio conocido
         for service, domain in corrections.items():
             if service in email_text and '@' not in email_text:
                 username = email_text.replace(service, '')
                 return f"{username}{domain}"
 
-        # Si ya parece un email, devolverlo
         if '@' in email_text and '.' in email_text:
             return email_text
 
-        # Fallback: asumir gmail si no se especifica
         if '@' not in email_text:
             return f"{email_text}@gmail.com"
 
