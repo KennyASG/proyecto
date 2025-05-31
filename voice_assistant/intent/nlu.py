@@ -9,8 +9,9 @@ class IntentParser:
         # Diccionario de contactos conocidos
         self.contacts = {
             "mayen": "mayenrosil@gmail.com",
-            "rosa": "rosa.martinez@empresa.com",
-            "juan": "juan.perez@hotmail.com",
+            "kenny": "saenzk031@gmail.com",
+            "fernando": "jofermelenbo@gmail.com",
+            "erick" : ""
             # Agregar más contactos aquí
         }
 
@@ -75,6 +76,12 @@ class IntentParser:
         # voice_assistant/intent/nlu.py  (inserta antes del fallback)
 
     # Regla para Spotify
+           # voice_assistant/intent/nlu.py
+        if text_lower.startswith(("spotify buscar", "spotify search")):
+            parts = text_lower.split()
+            # parts[2:] es el nombre
+            track = " ".join(parts[2:]).strip()
+            return "spotify_desktop", {"action": "buscar", "track": track}
     # Regla para Spotify
 # voice_assistant/intent/nlu.py
 
@@ -87,6 +94,9 @@ class IntentParser:
             parts = text_lower.split()
             action = parts[1] if len(parts) > 1 else ""
             return "spotify_desktop", {"action": action}
+
+     
+
 
 
         # 4. Fallback: chat con Gemini
@@ -253,6 +263,108 @@ class IntentParser:
         if '@' in email_text and '.' in email_text:
             return email_text
 
+        if '@' not in email_text:
+            return f"{email_text}@gmail.com"
+
+        return email_text
+
+    def _extract_email_content(self, text: str):
+        """Extrae asunto y cuerpo del comando de email"""
+        subject, body = "", ""
+
+        if " asunto " in text:
+            parts = text.split(" asunto ")
+            if len(parts) > 1:
+                rest = parts[1]
+                if " cuerpo " in rest:
+                    subject_body = rest.split(" cuerpo ")
+                    subject = subject_body[0].strip()
+                    body = subject_body[1].strip() if len(subject_body) > 1 else ""
+                else:
+                    subject = rest.strip()
+
+        return subject, body
+
+    def _extract_email_from_text(self, text: str) -> str:Add commentMore actions
+        """Extrae y reconstruye el email del texto transcrito"""
+
+        # Método 1: Buscar por contacto conocido
+        for name, email in self.contacts.items():
+            if name in text:
+                print(f"[NLU] Contacto encontrado: {name} -> {email}")
+                return email
+
+        # Método 2: Intentar reconstruir el email
+        # Buscar patrones como "algo @ algo punto com"
+        email_pattern = self._reconstruct_email_from_speech(text)
+        if email_pattern:
+            return email_pattern
+
+        # Método 3: Extraer después de "enviar correo a"
+        parts = text.replace("enviar correo a ", "").split(" asunto ")
+        potential_email = parts[0].strip()
+
+        # Limpiar y reconstruir
+        cleaned_email = self._clean_and_rebuild_email(potential_email)
+        return cleaned_email
+
+    def _reconstruct_email_from_speech(self, text: str) -> str:
+        """Intenta reconstruir emails de texto hablado"""
+
+        # Patrones comunes de speech-to-text para emails
+        replacements = {
+            " arroba ": "@",
+            " @ ": "@",
+            " at ": "@",
+            " punto ": ".",
+            " dot ": ".",
+            " com": ".com",
+            " gmail": "gmail",
+            " hotmail": "hotmail",
+            " yahoo": "yahoo",
+            " outlook": "outlook"
+        }
+
+        result = text.lower()
+        for pattern, replacement in replacements.items():
+            result = result.replace(pattern, replacement)
+
+        # Remover espacios alrededor de @ y puntos
+        result = re.sub(r'\s*@\s*', '@', result)
+        result = re.sub(r'\s*\.\s*', '.', result)
+
+        # Buscar patrón de email válido
+        email_match = re.search(r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b', result)
+        if email_match:
+            return email_match.group()
+
+        return None
+
+    def _clean_and_rebuild_email(self, email_text: str) -> str:
+        """Limpia y reconstruye un email mal transcrito"""
+
+        # Remover espacios extra
+        email_text = re.sub(r'\s+', '', email_text.lower())
+
+        # Patrones comunes de corrección
+        corrections = {
+            'gmail': '@gmail.com',
+            'hotmail': '@hotmail.com',
+            'yahoo': '@yahoo.com',
+            'outlook': '@outlook.com'
+        }
+
+        # Si no tiene @ pero tiene un servicio conocido
+        for service, domain in corrections.items():
+            if service in email_text and '@' not in email_text:
+                username = email_text.replace(service, '')
+                return f"{username}{domain}"
+
+        # Si ya parece un email, devolverlo
+        if '@' in email_text and '.' in email_text:
+            return email_text
+
+        # Fallback: asumir gmail si no se especifica
         if '@' not in email_text:
             return f"{email_text}@gmail.com"
 

@@ -5,18 +5,78 @@ import subprocess
 import os
 from .base_action import BaseAction
 import time
+import pygetwindow as gw
+
 
 try:
     import keyboard
 except ImportError:
     keyboard = None
 
+
+
+
+try:
+    import pygetwindow as gw
+except ImportError:
+    gw = None
+
+def open_or_focus_spotify():
+    system = platform.system()
+
+    # 1) Si la ventana ya existe, tráela al frente
+    if gw:
+        
+        #print("entra 1")
+        wins = gw.getWindowsWithTitle("Spotify")
+        if wins:
+            #print("entra 2")
+            win = wins[0]
+            try:
+                #print("entra 3")
+               # print(f"[Netflix] SPOTIFY pantalla de perfiles: {win}")
+                win.activate()
+                time.sleep(0.5)
+                return
+            except Exception as e:
+                return
+                #print(f"Error al activar la ventana de Spotify: {e}")
+                # Si falla, seguimos con el siguiente paso
+
+    # 2) Si no hay ventana, abre la app nativa
+    if system == "Windows":
+       # print("entra 4")
+        os.startfile("spotify.exe")
+    elif system == "Darwin":
+        subprocess.Popen(["open", "-a", "Spotify"])
+    else:
+        subprocess.Popen(["spotify"])
+
+    # 3) Espera a que arranque y enfócalo
+    time.sleep(3)
+    if gw:
+        wins = gw.getWindowsWithTitle("Spotify")
+        if wins:
+            win = wins[0]
+            win.activate()
+            time.sleep(0.5)
+
+
+
 class SpotifyDesktopAction(BaseAction):
+
+
+
+
+
     def name(self) -> str:
         return "spotify_desktop"
 
     def execute(self, params: dict) -> str:
         action = params.get("action", "").lower().strip()
+        
+        open_or_focus_spotify()
+
         print(f"[SpotifyDesktopAction] Acción recibida: {action}")
 
         system = platform.system()
@@ -51,6 +111,29 @@ class SpotifyDesktopAction(BaseAction):
                 "skip": "next track",
                 "stop": "play/pause media"
             }
+            if action in ("buscar", "search") :
+                track = params.get("track", "").strip()
+                time.sleep(7)
+                # 1) Foco en el buscador: Ctrl+L
+                keyboard.send("ctrl+l")
+                time.sleep(2)
+                # 2) Escribe el nombre de la canción
+                keyboard.write(track)
+                time.sleep(2)
+                # 3) Enter para lanzar la búsqueda
+                keyboard.send("enter")
+                # 4) Espera a que cargue resultados
+                time.sleep(4)
+                # 5) Flecha abajo para seleccionar la primera canción
+                keyboard.send("tab")
+                time.sleep(2)
+                # 6) Enter para reproducirla
+                keyboard.send("enter")
+                time.sleep(4)
+                # 6) Enter para reproducirla
+                keyboard.send("enter")
+                time.sleep(1)
+                return f"Buscando y reproduciendo «{track}» en Spotify Desktop."
             key = mapping.get(action)
             if key:
                 if action == "anterior":
