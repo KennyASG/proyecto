@@ -42,6 +42,9 @@ class IntentParser:
             message = parts[1].strip() if len(parts) > 1 else ""
             return "send_whatsapp", {"to": to, "message": message}
 
+        if "cállate" in text_lower:
+            return "shutdown", {}
+
         if text_lower.startswith("abrir "):
             app_name = text_lower.replace("abrir ", "").strip()
             return "open_app", {"app": app_name}
@@ -73,7 +76,7 @@ class IntentParser:
 
         # Fallback: chat con Gemini
         # Regla para Spotify
-        # voice_assistant/intent/nlu.py  (inserta antes del fallback)
+        # voice_assistant/intent/nlu.py  
 
     # Regla para Spotify
            # voice_assistant/intent/nlu.py
@@ -285,7 +288,7 @@ class IntentParser:
 
         return subject, body
 
-    def _extract_email_from_text(self, text: str) -> str:Add commentMore actions
+    def _extract_email_from_text(self, text: str) -> str:
         """Extrae y reconstruye el email del texto transcrito"""
 
         # Método 1: Buscar por contacto conocido
