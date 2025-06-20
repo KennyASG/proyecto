@@ -11,7 +11,7 @@ class IntentParser:
             "mayen": "mayenrosil@gmail.com",
             "kenny": "saenzk031@gmail.com",
             "fernando": "jofermelenbo@gmail.com",
-            "erick" : ""
+            "carlos" :  "cmartinezb10@miumg.edu.gt" 
             # Agregar más contactos aquí
         }
 
